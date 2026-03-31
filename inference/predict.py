@@ -1,10 +1,16 @@
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import torch
-import torch.nn as nn
-from torchvision import transforms
 from PIL import Image
-import numpy as np
 import logging
 import sys
+
+from models.cnn import MNISTCNN
+from utils.device import get_device
+from utils.transforms import MNIST_TRANSFORM
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -14,34 +20,14 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class CNN(nn.Module):
-    def __init__(self):
-        super(CNN, self).__init__()
-        self.conv1 = torch.nn.Conv2d(1, 32, kernel_size=3, padding=1)
-        self.conv2 = torch.nn.Conv2d(32, 64, kernel_size=3, padding=1)
-        self.pool = torch.nn.MaxPool2d(2, 2)
-        self.fc1 = torch.nn.Linear(64 * 7 * 7, 128)
-        self.fc2 = torch.nn.Linear(128, 10)
-        self.dropout = torch.nn.Dropout(0.5)
-        self.relu = torch.nn.ReLU()
-
-    def forward(self, x):
-        x = self.pool(self.relu(self.conv1(x)))
-        x = self.pool(self.relu(self.conv2(x)))
-        x = x.view(-1, 64 * 7 * 7)
-        x = self.dropout(self.relu(self.fc1(x)))
-        x = self.fc2(x)
-        return x
-
-
 def predict(image_path):
     logger.info(f"开始预测图像: {image_path}")
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = get_device()
     logger.info(f"使用设备: {device}")
 
     logger.info("初始化CNN模型...")
-    model = CNN().to(device)
+    model = MNISTCNN().to(device)
     logger.debug(f"模型结构: {model}")
 
     logger.info("从'mnist_model.pth'加载模型权重...")
@@ -52,14 +38,7 @@ def predict(image_path):
     logger.debug("模型设置为评估模式")
 
     logger.info("定义图像转换管道...")
-    transform = transforms.Compose(
-        [
-            transforms.Resize((28, 28)),
-            transforms.Grayscale(num_output_channels=1),
-            transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,)),
-        ]
-    )
+    transform = MNIST_TRANSFORM
     logger.debug(f"转换管道: {transform}")
 
     logger.info(f"加载并处理图像: {image_path}")

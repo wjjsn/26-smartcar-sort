@@ -37,10 +37,11 @@
     TRAIN_RATIO: 训练集比例，默认为 0.8
 """
 
-import os
 import shutil
 import random
 from pathlib import Path
+
+from config.classes import SMARTCAR_CLASSES
 
 
 # ==================== 配置参数 ====================
@@ -84,7 +85,7 @@ def split_smartcar_dataset():
     print(f"训练集比例: {TRAIN_RATIO * 100:.0f}%")
     print("-" * 50)
 
-    class_names = ["交通工具-直行", "武器-左", "物资-右"]
+    class_names = SMARTCAR_CLASSES
 
     for class_name in class_names:
         class_dir = SRC_DIR / class_name

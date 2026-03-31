@@ -1,13 +1,19 @@
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import shutil
 import random
-from pathlib import Path
+
+from config.classes import SMARTCAR_CLASSES
 
 
 def prepare_dataset(test_ratio=0.2):
     src_dir = Path("out")
     dst_dir = Path("data/smartcar")
 
-    categories = ["交通工具-直行", "武器-左", "物资-右"]
+    categories = SMARTCAR_CLASSES
 
     for split in ["train", "test"]:
         for cat in categories:
