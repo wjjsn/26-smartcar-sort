@@ -50,56 +50,7 @@ def detect_a4_by_red(image_path):
     center_red_contours.sort(key=lambda r: r[1], reverse=True)
     best_cnt, best_area, rx, ry, rw, rh = center_red_contours[0]
 
-    cv2.drawContours(result, [best_cnt], -1, (255, 0, 0), 2)
-
-    rect = cv2.minAreaRect(best_cnt)
-    box = cv2.boxPoints(rect)
-    box = box.astype(np.int64)
-
-    for point in box:
-        cv2.circle(result, (int(point[0]), int(point[1])), 5, (0, 255, 0), -1)
-
-    box_sorted_by_y = box[np.argsort(box[:, 1])]
-    top_two = box_sorted_by_y[:2]
-    bottom_two = box_sorted_by_y[2:]
-
-    top_two_sorted_by_x = top_two[np.argsort(top_two[:, 0])]
-    bottom_two_sorted_by_x = bottom_two[np.argsort(bottom_two[:, 0])]
-
-    A = (int(top_two_sorted_by_x[0][0]), int(top_two_sorted_by_x[0][1]))
-    B = (int(top_two_sorted_by_x[1][0]), int(top_two_sorted_by_x[1][1]))
-    C = (int(bottom_two_sorted_by_x[1][0]), int(bottom_two_sorted_by_x[1][1]))
-    D = (int(bottom_two_sorted_by_x[0][0]), int(bottom_two_sorted_by_x[0][1]))
-
-    k_left = (D[1] - A[1]) / (D[0] - A[0]) if D[0] != A[0] else float("inf")
-    b_left = A[1] - k_left * A[0]
-
-    k_right = (C[1] - B[1]) / (C[0] - B[0]) if C[0] != B[0] else float("inf")
-    b_right = B[1] - k_right * B[0]
-
-    if abs(k_left) < 1000 and k_left != 0:
-        left_y0_x = int((0 - b_left) / k_left)
-        left_yh_x = int((h - b_left) / k_left)
-    else:
-        left_y0_x = A[0]
-        left_yh_x = A[0]
-
-    if abs(k_right) < 1000 and k_right != 0:
-        right_y0_x = int((0 - b_right) / k_right)
-        right_yh_x = int((h - b_right) / k_right)
-    else:
-        right_y0_x = B[0]
-        right_yh_x = B[0]
-
-    left_top = (max(0, min(w, left_y0_x)), 0)
-    left_bottom = (max(0, min(w, left_yh_x)), h)
-    right_top = (max(0, min(w, right_y0_x)), 0)
-    right_bottom = (max(0, min(w, right_yh_x)), h)
-
-    cv2.line(result, left_top, left_bottom, (255, 0, 0), 2)
-    cv2.line(result, right_top, right_bottom, (255, 0, 0), 2)
-
-    print(f"{image_path.name}: A={A}, B={B}, C={C}, D={D}")
+    cv2.drawContours(result, [best_cnt], -1, (255, 0, 0), 1)
 
     return result
 
