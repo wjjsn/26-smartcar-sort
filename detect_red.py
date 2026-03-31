@@ -52,44 +52,54 @@ def detect_a4_by_red(image_path):
 
     cv2.drawContours(result, [best_cnt], -1, (255, 0, 0), 2)
 
-    hull = cv2.convexHull(best_cnt)
-    hull_points = hull[:, 0, :]
+    rect = cv2.minAreaRect(best_cnt)
+    box = cv2.boxPoints(rect)
+    box = box.astype(np.int64)
 
-    leftmost = hull_points[hull_points[:, 0].argmin()]
-    rightmost = hull_points[hull_points[:, 0].argmax()]
+    for point in box:
+        cv2.circle(result, (int(point[0]), int(point[1])), 5, (0, 255, 0), -1)
 
-    bottom_left = (int(leftmost[0]), int(leftmost[1]))
-    bottom_right = (int(rightmost[0]), int(rightmost[1]))
+    box_sorted_by_y = box[np.argsort(box[:, 1])]
+    top_two = box_sorted_by_y[:2]
+    bottom_two = box_sorted_by_y[2:]
 
-    red_center_x = rx + rw // 2
-    red_bottom_y = ry + rh
+    top_two_sorted_by_x = top_two[np.argsort(top_two[:, 0])]
+    bottom_two_sorted_by_x = bottom_two[np.argsort(bottom_two[:, 0])]
 
-    scale_h = 4.2
-    paper_h = int(rh * scale_h)
-    top_y = red_bottom_y - paper_h
+    A = (int(top_two_sorted_by_x[0][0]), int(top_two_sorted_by_x[0][1]))
+    B = (int(top_two_sorted_by_x[1][0]), int(top_two_sorted_by_x[1][1]))
+    C = (int(bottom_two_sorted_by_x[1][0]), int(bottom_two_sorted_by_x[1][1]))
+    D = (int(bottom_two_sorted_by_x[0][0]), int(bottom_two_sorted_by_x[0][1]))
 
-    top_left_x = bottom_left[0]
-    top_right_x = bottom_right[0]
+    k_left = (D[1] - A[1]) / (D[0] - A[0]) if D[0] != A[0] else float("inf")
+    b_left = A[1] - k_left * A[0]
 
-    top_left_point = (top_left_x, int(top_y))
-    top_right_point = (top_right_x, int(top_y))
+    k_right = (C[1] - B[1]) / (C[0] - B[0]) if C[0] != B[0] else float("inf")
+    b_right = B[1] - k_right * B[0]
 
-    cv2.line(result, top_left_point, bottom_left, (255, 0, 0), 2)
-    cv2.line(result, top_right_point, bottom_right, (255, 0, 0), 2)
+    if abs(k_left) < 1000 and k_left != 0:
+        left_y0_x = int((0 - b_left) / k_left)
+        left_yh_x = int((h - b_left) / k_left)
+    else:
+        left_y0_x = A[0]
+        left_yh_x = A[0]
 
-    cv2.line(result, top_left_point, top_right_point, (0, 255, 0), 3)
-    cv2.line(result, top_right_point, bottom_right, (0, 255, 0), 3)
-    cv2.line(result, bottom_right, bottom_left, (0, 255, 0), 3)
-    cv2.line(result, bottom_left, top_left_point, (0, 255, 0), 3)
+    if abs(k_right) < 1000 and k_right != 0:
+        right_y0_x = int((0 - b_right) / k_right)
+        right_yh_x = int((h - b_right) / k_right)
+    else:
+        right_y0_x = B[0]
+        right_yh_x = B[0]
 
-    cv2.circle(result, top_left_point, 5, (0, 255, 0), -1)
-    cv2.circle(result, top_right_point, 5, (0, 255, 0), -1)
-    cv2.circle(result, bottom_left, 5, (0, 255, 0), -1)
-    cv2.circle(result, bottom_right, 5, (0, 255, 0), -1)
+    left_top = (max(0, min(w, left_y0_x)), 0)
+    left_bottom = (max(0, min(w, left_yh_x)), h)
+    right_top = (max(0, min(w, right_y0_x)), 0)
+    right_bottom = (max(0, min(w, right_yh_x)), h)
 
-    print(
-        f"{image_path.name}: Top({top_left_point},{top_right_point}), Bottom({bottom_left},{bottom_right})"
-    )
+    cv2.line(result, left_top, left_bottom, (255, 0, 0), 2)
+    cv2.line(result, right_top, right_bottom, (255, 0, 0), 2)
+
+    print(f"{image_path.name}: A={A}, B={B}, C={C}, D={D}")
 
     return result
 
