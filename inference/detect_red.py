@@ -499,7 +499,7 @@ def detect_a4_by_red(
 def main(
     input_dir: str = "png_smartcar",
     output_dir: str = "out",
-    categories: Optional[List[str]] = None,
+    categories: Optional[List[str]] = ["交通工具-直行", "武器-左", "物资-右"],
 ) -> None:
     """
     批量处理目录中的图像，检测并校正A4纸区域。
@@ -512,9 +512,6 @@ def main(
     input_path = Path(input_dir)
     out_path = Path(output_dir)
     out_path.mkdir(exist_ok=True)
-
-    if categories is None:
-        categories = ["交通工具-直行", "武器-左", "物资-右"]
 
     for category in categories:
         category_path = input_path / category
