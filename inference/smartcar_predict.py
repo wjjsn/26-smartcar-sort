@@ -4,6 +4,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import torch
+import torch.nn.functional as F
 import cv2
 
 from config.classes import SMARTCAR_CLASSES, IDX_TO_CLASS
@@ -25,7 +26,13 @@ def predict_image(model, img_path, idx_to_class, device):
     model.eval()
     with torch.no_grad():
         output = model(img_tensor)
+        probs = F.softmax(output, dim=1)
         pred = output.argmax(dim=1).item()
+
+    prob_values = probs.squeeze().cpu().numpy()
+    print(f"置信度:")
+    for i, cls_name in idx_to_class.items():
+        print(f"  {cls_name}: {prob_values[i]:.4f}")
 
     return idx_to_class[pred]
 
