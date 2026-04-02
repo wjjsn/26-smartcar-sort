@@ -67,6 +67,8 @@ def main():
             status = "✓" if is_correct else "✗"
             print(f"{status} {img_path.name}: predicted={pred}, actual={true_label}")
 
+            print("-" * 40)
+
     print(f"\nAccuracy: {correct}/{total} = {100 * correct / total:.2f}%")
 
 
