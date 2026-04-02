@@ -16,12 +16,15 @@ from utils.transforms import get_smartcar_transform
 
 
 def get_dataLoaders(batch_size=16, img_size=96):
-    transform = get_smartcar_transform(img_size)
+    train_transform = get_smartcar_transform(img_size, train=True)
+    test_transform = get_smartcar_transform(img_size, train=False)
 
     train_dataset = datasets.ImageFolder(
-        root="data/smartcar/train", transform=transform
+        root="data/smartcar/train", transform=train_transform
     )
-    test_dataset = datasets.ImageFolder(root="data/smartcar/test", transform=transform)
+    test_dataset = datasets.ImageFolder(
+        root="data/smartcar/test", transform=test_transform
+    )
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
