@@ -68,12 +68,20 @@ def main():
         "--train_ratio", type=float, default=0.8, help="训练集比例 0-1（默认: 0.8）"
     )
     parser.add_argument("--epochs", type=int, default=50, help="训练轮数（默认: 50）")
+    parser.add_argument(
+        "--framework",
+        type=str,
+        default="pytorch",
+        choices=["pytorch", "tensorflow"],
+        help="深度学习框架: pytorch 或 tensorflow（默认: pytorch）",
+    )
 
     args = parser.parse_args()
 
     print("=" * 60)
     print("SmartCar 图像分类系统")
     print(f"运行阶段: {args.stage}")
+    print(f"框架: {args.framework}")
     print("=" * 60)
 
     # ----------------------------------------
@@ -120,7 +128,10 @@ def main():
         print("\n>>> 阶段2: 模型训练")
         print("-" * 40)
 
-        from training.smartcar_train import train
+        if args.framework == "pytorch":
+            from training.smartcar_train import train
+        else:
+            from training.smartcar_train_tf import train
 
         train(epochs=args.epochs)
 
@@ -133,7 +144,10 @@ def main():
         print("\n>>> 阶段3: 模型推理")
         print("-" * 40)
 
-        from inference.smartcar_predict import main as inference_main
+        if args.framework == "pytorch":
+            from inference.smartcar_predict import main as inference_main
+        else:
+            from inference.smartcar_predict_tf import main as inference_main
 
         inference_main()
 
