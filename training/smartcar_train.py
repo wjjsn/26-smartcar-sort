@@ -83,7 +83,8 @@ def train(epochs=20):
 
         accuracy = 100.0 * correct / len(test_loader.dataset)
         print(
-            f"Epoch {epoch + 1}/{epochs} - Loss: {total_loss / len(train_loader):.4f} - Acc: {accuracy:.2f}%"
+            f"Epoch {epoch + 1}/{epochs} - Loss: {total_loss / len(train_loader):.4f} - Acc: {accuracy:.2f}%",
+            end='\r'
         )
 
     torch.save(
