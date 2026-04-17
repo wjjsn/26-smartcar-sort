@@ -57,7 +57,7 @@ def organize_dataset(
     output_dir: str = "data",
     train_ratio: float = 0.8,
     seed: int = 42,
-    pattern: Optional[str] = None,
+    pattern: Optional[list[str]] = None,
 ) -> None:
     """
     整理数据集为 train/test 结构
@@ -67,7 +67,7 @@ def organize_dataset(
         output_dir: 输出目录路径，默认为 "data"
         train_ratio: 训练集比例，范围 0-1，默认为 0.8
         seed: 随机种子，确保结果可复现，默认为 42
-        pattern: 文件名匹配模式，如 "warped_*.png"。如果为 None，则匹配所有图片格式
+        pattern: 文件名匹配模式列表，如 ["warped_*.png", "*.jpg"]。如果为 None，则匹配所有图片格式
 
     Returns:
         None
@@ -78,8 +78,8 @@ def organize_dataset(
         交通工具-直行: 12 训练, 4 测试
         武器-左: 13 训练, 4 测试
 
-        # 只处理 warped_*.png 文件
-        >>> organize_dataset("out", "data/smartcar", pattern="warped_*.png")
+        # 只处理 warped_*.png 和 *.jpg 文件
+        >>> organize_dataset("out", "data/smartcar", pattern=["warped_*.png", "*.jpg"])
     """
     src_path = Path(src_dir)
     if not src_path.exists():
@@ -100,7 +100,10 @@ def organize_dataset(
         class_name = class_dir.name
 
         if pattern:
-            images = list(class_dir.glob(pattern))
+            images = []
+            for p in pattern:
+                images.extend(list(class_dir.glob(p)))
+            images = list(set(images))
         else:
             images = (
                 list(class_dir.glob("*.png"))
@@ -170,8 +173,9 @@ if __name__ == "__main__":
         "--pattern",
         "-p",
         type=str,
+        nargs="+",
         default=None,
-        help="文件名匹配模式，如 'warped_*.png'（默认: 匹配所有图片格式）",
+        help="文件名匹配模式列表，如 'warped_*.png' '*.jpg'（默认: 匹配所有图片格式）",
     )
 
     args = parser.parse_args()

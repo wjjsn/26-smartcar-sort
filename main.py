@@ -116,7 +116,7 @@ def main():
             output_dir=args.output_dir,
             train_ratio=args.train_ratio,
             seed=42,
-            pattern="warped_*.png",
+            pattern=["warped_*.png"],
         )
 
     # ----------------------------------------
