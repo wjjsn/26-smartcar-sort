@@ -39,6 +39,7 @@ from typing import Optional, Tuple, List
 from dataclasses import dataclass, field
 from itertools import chain
 
+
 @dataclass
 class A4DetectionResult:
     """A4纸检测结果数据类"""
@@ -581,7 +582,7 @@ def detect_a4_by_red(
 
     if not detection.success:
         print(f"{Path(image_path).name}: {detection.message}")
-        return img if draw_result else None
+        return (img, None) if draw_result else None
 
     if draw_result:
         result = visualize_detection(img, detection, extend_length)
@@ -624,15 +625,20 @@ def main(
         category_out = out_path / category
         category_out.mkdir(exist_ok=True)
 
-        files=chain(category_path.glob("*.png"), category_path.glob("*.jpg"), category_path.glob("*.jpeg"))
+        files = chain(
+            category_path.glob("*.png"),
+            category_path.glob("*.jpg"),
+            category_path.glob("*.jpeg"),
+        )
         for img_path in files:
             output_data = detect_a4_by_red(str(img_path))
             if output_data is not None:
                 result, warped = output_data
                 output_path = category_out / img_path.name
                 cv2.imwrite(str(output_path), result)
-                warped_path = category_out / f"warped_{img_path.name}"
-                cv2.imwrite(str(warped_path), cv2.rotate(warped, cv2.ROTATE_180))
+                if warped is not None:
+                    warped_path = category_out / f"warped_{img_path.name}"
+                    cv2.imwrite(str(warped_path), cv2.rotate(warped, cv2.ROTATE_180))
 
 
 if __name__ == "__main__":
