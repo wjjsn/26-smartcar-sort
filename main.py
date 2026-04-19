@@ -37,7 +37,8 @@ def main():
             - inference: 仅进行模型推理
         --src_dir: 源数据集目录（默认: png_smartcar）
         --output_dir: 输出目录（默认: data/smartcar）
-        --train_ratio: 训练集比例（默认: 0.8）
+        --train_ratio: 训练集比例（默认: 0.7）
+        --val_ratio: 验证集比例（默认: 0.2）
         --epochs: 训练轮数（默认: 20）
     """
     parser = argparse.ArgumentParser(
@@ -65,7 +66,10 @@ def main():
         help="输出目录（默认: data/smartcar）",
     )
     parser.add_argument(
-        "--train_ratio", type=float, default=0.8, help="训练集比例 0-1（默认: 0.8）"
+        "--train_ratio", type=float, default=0.7, help="训练集比例 0-1（默认: 0.7）"
+    )
+    parser.add_argument(
+        "--val_ratio", type=float, default=0.2, help="验证集比例 0-1（默认: 0.2）"
     )
     parser.add_argument("--epochs", type=int, default=50, help="训练轮数（默认: 50）")
     parser.add_argument(
@@ -106,8 +110,8 @@ def main():
             categories=["交通工具-直行", "武器-左", "物资-右"],
         )
 
-        # 步骤1.2: 整理数据集为 train/test 结构
-        print("\n[1.2] 整理数据集为 train/test 结构")
+        # 步骤1.2: 整理数据集为 train/val/test 结构
+        print("\n[1.2] 整理数据集为 train/val/test 结构")
         print("-" * 30)
         from dataset.scripts.organize_dataset import organize_dataset
 
@@ -115,8 +119,9 @@ def main():
             src_dir="out",
             output_dir=args.output_dir,
             train_ratio=args.train_ratio,
+            val_ratio=args.val_ratio,
             seed=42,
-            pattern=["warped_*.png","warped_*.jpg","warped_*.jpeg"],
+            pattern=["warped_*.png", "warped_*.jpg", "warped_*.jpeg"],
         )
 
     # ----------------------------------------

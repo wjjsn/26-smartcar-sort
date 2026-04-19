@@ -5,21 +5,21 @@
 ==================
 
 功能说明:
-    将任意格式的图片数据集自动整理为 PyTorch 标准的 train/test 划分结构。
+    将任意格式的图片数据集自动整理为 PyTorch 标准的 train/val/test 划分结构。
     支持多类别分类任务，每个类别对应一个子文件夹。
 
 使用方法:
-    # 基本用法（默认 8:2 划分）
+    # 基本用法（默认 7:2:1 划分，即训练集70%，验证集20%，测试集10%）
     python organize_dataset.py png_smartcar
 
     # 指定输出目录
     python organize_dataset.py png_smartcar --output mydata
 
     # 指定训练集比例
-    python organize_dataset.py png_smartcar --ratio 0.9
+    python organize_dataset.py png_smartcar --ratio 0.7 --val_ratio 0.2
 
     # 组合使用
-    python organize_dataset.py png_smartcar -o mydata -r 0.8
+    python organize_dataset.py png_smartcar -o mydata -r 0.7 -v 0.2
 
 输入要求:
     - 源文件夹中每个子文件夹视为一个类别
@@ -34,6 +34,9 @@
     │   │   └── img2.png
     │   └── 类别B/
     │       └── img3.png
+    ├── val/
+    │   ├── 类别A/
+    │   └── 类别B/
     └── test/
         ├── 类别A/
         └── 类别B/
@@ -41,7 +44,8 @@
 参数说明:
     src_dir   : 源数据集路径（必填）
     --output  : 输出目录路径，默认为 "data"
-    --ratio   : 训练集比例，默认为 0.8（80%训练，20%测试）
+    --ratio   : 训练集比例，默认为 0.7（70%训练，20%验证，10%测试）
+    --val_ratio: 验证集比例，默认为 0.2
     -h        : 显示帮助信息
 """
 
@@ -55,17 +59,19 @@ from typing import Optional
 def organize_dataset(
     src_dir: str,
     output_dir: str = "data",
-    train_ratio: float = 0.8,
+    train_ratio: float = 0.7,
+    val_ratio: float = 0.2,
     seed: int = 42,
     pattern: Optional[list[str]] = None,
 ) -> None:
     """
-    整理数据集为 train/test 结构
+    整理数据集为 train/val/test 结构
 
     Args:
         src_dir: 源数据集目录路径，该目录下应包含多个子目录（每个子目录为一个类别）
         output_dir: 输出目录路径，默认为 "data"
-        train_ratio: 训练集比例，范围 0-1，默认为 0.8
+        train_ratio: 训练集比例，默认为 0.7（70%）
+        val_ratio: 验证集比例，默认为 0.2（20%），剩余10%为测试集
         seed: 随机种子，确保结果可复现，默认为 42
         pattern: 文件名匹配模式列表，如 ["warped_*.png", "*.jpg"]。如果为 None，则匹配所有图片格式
 
@@ -73,10 +79,10 @@ def organize_dataset(
         None
 
     Example:
-        >>> organize_dataset("png_smartcar", "data", 0.8)
-        物资-右: 20 训练, 6 测试
-        交通工具-直行: 12 训练, 4 测试
-        武器-左: 13 训练, 4 测试
+        >>> organize_dataset("png_smartcar", "data", 0.7, 0.2)
+        物资-右: 20 训练, 6 验证, 3 测试
+        交通工具-直行: 12 训练, 4 验证, 2 测试
+        武器-左: 13 训练, 4 验证, 2 测试
 
         # 只处理 warped_*.png 和 *.jpg 文件
         >>> organize_dataset("out", "data/smartcar", pattern=["warped_*.png", "*.jpg"])
@@ -117,13 +123,20 @@ def organize_dataset(
 
         random.shuffle(images)
 
-        split_idx = int(len(images) * train_ratio)
+        train_split = int(len(images) * train_ratio)
+        val_split = train_split + int(len(images) * val_ratio)
 
-        train_images = images[:split_idx]
-        test_images = images[split_idx:]
+        train_images = images[:train_split]
+        val_images = images[train_split:val_split]
+        test_images = images[val_split:]
 
         for img in train_images:
             dst = Path(output_dir) / "train" / class_name / img.name
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(img, dst)
+
+        for img in val_images:
+            dst = Path(output_dir) / "val" / class_name / img.name
             dst.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(img, dst)
 
@@ -132,10 +145,13 @@ def organize_dataset(
             dst.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(img, dst)
 
-        print(f"{class_name}: {len(train_images)} 训练, {len(test_images)} 测试")
+        print(
+            f"{class_name}: {len(train_images)} 训练, {len(val_images)} 验证, {len(test_images)} 测试"
+        )
 
     print(f"\n数据集整理完成!")
     print(f"训练集: {output_dir}/train/")
+    print(f"验证集: {output_dir}/val/")
     print(f"测试集: {output_dir}/test/")
 
 
@@ -165,8 +181,16 @@ if __name__ == "__main__":
         "--ratio",
         "-r",
         type=float,
-        default=0.8,
-        help="训练集比例，范围 0-1（默认: 0.8）",
+        default=0.7,
+        help="训练集比例，范围 0-1（默认: 0.7）",
+    )
+
+    parser.add_argument(
+        "--val_ratio",
+        "-v",
+        type=float,
+        default=0.2,
+        help="验证集比例，范围 0-1（默认: 0.2）",
     )
 
     parser.add_argument(
@@ -184,5 +208,6 @@ if __name__ == "__main__":
         src_dir=args.src_dir,
         output_dir=args.output,
         train_ratio=args.ratio,
+        val_ratio=args.val_ratio,
         pattern=args.pattern,
     )

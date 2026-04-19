@@ -19,6 +19,13 @@ def get_datasets(batch_size=8, img_size=96):
     class_names = train_ds.class_names
     idx_to_class = {i: name for i, name in enumerate(class_names)}
 
+    val_ds = tf.keras.utils.image_dataset_from_directory(
+        "data/smartcar/val",
+        image_size=(img_size, img_size),
+        batch_size=batch_size,
+        label_mode="categorical",
+    )
+
     test_ds = tf.keras.utils.image_dataset_from_directory(
         "data/smartcar/test",
         image_size=(img_size, img_size),
@@ -29,15 +36,18 @@ def get_datasets(batch_size=8, img_size=96):
     train_ds = train_ds.map(
         lambda x, y: ((tf.cast(x, tf.float32) / 127.5) - 1.0, tf.argmax(y, axis=1))
     )
+    val_ds = val_ds.map(
+        lambda x, y: ((tf.cast(x, tf.float32) / 127.5) - 1.0, tf.argmax(y, axis=1))
+    )
     test_ds = test_ds.map(
         lambda x, y: ((tf.cast(x, tf.float32) / 127.5) - 1.0, tf.argmax(y, axis=1))
     )
 
-    return train_ds, test_ds, idx_to_class
+    return train_ds, val_ds, test_ds, idx_to_class
 
 
 def train(epochs=100):
-    train_ds, test_ds, idx_to_class = get_datasets()
+    train_ds, val_ds, test_ds, idx_to_class = get_datasets()
 
     model = create_smartcar_cnn(num_classes=len(SMARTCAR_CLASSES))
     model.compile(
@@ -47,12 +57,14 @@ def train(epochs=100):
     )
 
     print(f"Classes: {idx_to_class}")
-    print(f"Train batches: {len(train_ds)}, Test batches: {len(test_ds)}")
+    print(
+        f"Train batches: {len(train_ds)}, Val batches: {len(val_ds)}, Test batches: {len(test_ds)}"
+    )
 
     history = model.fit(
         train_ds,
         epochs=epochs,
-        validation_data=test_ds,
+        validation_data=val_ds,
         verbose=2,
     )
 
