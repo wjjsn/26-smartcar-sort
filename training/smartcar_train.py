@@ -92,16 +92,19 @@ def train(epochs=50):
         accuracy = 100.0 * correct / len(val_loader.dataset)
         if accuracy > best_acc:
             best_acc = accuracy
-        print(
-            f"Epoch {epoch + 1}/{epochs} - Loss: {total_loss / len(train_loader):.4f} - Val Acc: {accuracy:.2f}% (Best: {best_acc:.2f}%)",
-            end="\r",
-        )
-
-    torch.save(
-        {"model": model.state_dict(), "idx_to_class": idx_to_class},
-        "smartcar_model.pth",
-    )
-    print("\nModel saved to smartcar_model.pth")
+            torch.save(
+                {"model": model.state_dict(), "idx_to_class": idx_to_class},
+                "smartcar_model.pth",
+            )
+            print(
+                f"Epoch {epoch + 1}/{epochs} - Loss: {total_loss / len(train_loader):.4f} - Val Acc: {accuracy:.2f}% (Best: {best_acc:.2f}%) - Saved best model!",
+                end="\r",
+            )
+        else:
+            print(
+                f"Epoch {epoch + 1}/{epochs} - Loss: {total_loss / len(train_loader):.4f} - Val Acc: {accuracy:.2f}% (Best: {best_acc:.2f}%)",
+                end="\r",
+            )
 
 
 if __name__ == "__main__":

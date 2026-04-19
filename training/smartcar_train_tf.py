@@ -61,17 +61,25 @@ def train(epochs=100):
         f"Train batches: {len(train_ds)}, Val batches: {len(val_ds)}, Test batches: {len(test_ds)}"
     )
 
+    callbacks = [
+        tf.keras.callbacks.ModelCheckpoint(
+            "smartcar_model_tf.h5",
+            monitor="val_accuracy",
+            save_best_only=True,
+            mode="max",
+            verbose=1,
+        ),
+    ]
+
     history = model.fit(
         train_ds,
         epochs=epochs,
         validation_data=val_ds,
+        callbacks=callbacks,
         verbose=2,
     )
 
-    model.save("smartcar_model_tf.h5")
     model.save_weights("smartcar_model_tf.weights.h5")
-    print("Model saved to smartcar_model_tf.h5")
-    print("Weights saved to smartcar_model_tf.weights.h5")
 
     import json
 
