@@ -1,6 +1,7 @@
 *.pth
 *.h5
 *.weights.h5
+*.tflite
 data/
 __pycache__/
 .venv/
