@@ -140,6 +140,19 @@ def main():
 
         train(epochs=args.epochs)
 
+        if args.framework == "tensorflow":
+            import tensorflow as tf
+
+            print("\n[2.x] 转换为 TFLite 模型")
+            print("-" * 30)
+            model = tf.keras.models.load_model("smartcar_model_tf.h5")
+            converter = tf.lite.TFLiteConverter.from_keras_model(model)
+            converter.optimizations = [tf.lite.Optimize.DEFAULT]
+            tflite_model = converter.convert()
+            with open("smartcar_model.tflite", "wb") as f:
+                f.write(tflite_model)
+            print("TFLite 模型已保存为 smartcar_model.tflite")
+
     # ----------------------------------------
     # 阶段3: 模型推理
     # 调用 inference.smartcar_predict.main
