@@ -50,7 +50,7 @@ def main():
         cat_dir = test_dir / cat
         if not cat_dir.exists():
             continue
-        for img_path in cat_dir.glob("*.png"):
+        for img_path in list(cat_dir.glob("*.png")) + list(cat_dir.glob("*.jpg")):
             pred = predict_image(model, img_path, idx_to_class)
             true_label = cat
             is_correct = pred == true_label
