@@ -147,7 +147,7 @@ def main():
             print("-" * 30)
             model = tf.keras.models.load_model("smartcar_model_tf.h5")
             converter = tf.lite.TFLiteConverter.from_keras_model(model)
-            converter.optimizations = [tf.lite.Optimize.DEFAULT]
+            converter.optimizations = []
             tflite_model = converter.convert()
             with open("smartcar_model.tflite", "wb") as f:
                 f.write(tflite_model)
